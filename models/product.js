@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
+const Cart = require('./cart');
+
 const p = path.join(path.dirname(process.mainModule.filename),
 'data',
 'products.json'
@@ -10,13 +12,16 @@ const getProductsFromFile = (cb) => {
   fs.readFile(p, function(err, filecontent) {
     if (err) {
       return cb([]);
+    } else {
+      cb(JSON.parse(filecontent));
     }
-    cb(JSON.parse(filecontent));
+
   });
 };
 
 module.exports = class Product {
-  constructor(title, imageUrl, cost, price) {
+  constructor(id, title, imageUrl, cost, price) {
+    this.id = id;
     this.title = title;
     this.imageUrl = imageUrl;
     this.cost = cost;
@@ -25,14 +30,53 @@ module.exports = class Product {
 
   save() {
     getProductsFromFile((products) => {
-      products.push(this);
-      fs.writeFileSync(p, JSON.stringify(products), function(err) {
-        console.log(err);
-      });
+      if (this.id) {
+        const existingProductIndex = products.findIndex(
+          prod => prod.id === this.id
+        );
+        const updatedProducts = [...products];
+        updatedProducts[existingProductIndex] = this;
+        fs.writeFileSync(p, JSON.stringify(updatedProducts), function(err) {
+          console.log(err);
+        });
+      } else {
+        this.id = Math.random().toString();
+        products.push(this);
+        fs.writeFileSync(p, JSON.stringify(products), function(err) {
+          console.log(err);
+        });
+      }
     });
-  };
+  }
+
+  static deleteById(id) {
+    console.log('deleteById initiated');
+    getProductsFromFile((products) => {
+      const product = products.find((prod) => prod.id === id);
+      console.log('product: ', product);
+      const updatedProducts = products.filter((prod) => prod.id !== id);
+      console.log('updatedProducts const created');
+      console.log(JSON.stringify(updatedProducts, undefined, 3));
+      fs.writeFile(p, JSON.stringify(updatedProducts), (err) => {
+        if (err) throw err;
+        if (!err) {
+          console.log('initiated deletion of product');
+          Cart.deleteProduct(id, product.price);
+        }
+      });
+
+      console.log('done deleting from cart...');
+    });
+  }
 
   static fetchAll(cb) {
     getProductsFromFile(cb);
+  }
+
+  static findById(id, cb) {
+    getProductsFromFile((products) => {
+      const product = products.find((p) => p.id === id);
+      cb(product);
+    });
   }
 };
