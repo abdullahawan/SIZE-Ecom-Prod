@@ -1,13 +1,26 @@
 const Product = require('../models/product');
 const Cart = require('../models/cart');
 
+const AWS = require('aws-sdk');
+AWS.config.update({region:'us-east-1'});
+
+const docClient = new AWS.DynamoDB.DocumentClient();
+
+
 exports.getProducts = function (req, res) {
-  Product.fetchAll((products) => {
-    res.render('shop/product-list', {
-      prods: products,
-      pageTitle: 'All Products',
-      path: '/products',
-    });
+  docClient.scan({
+    TableName: 'products'
+  }, (err, data) => {
+    if (err) {
+      console.log(err.stack);
+      res.status(500).redirect('/');
+    } else {
+      res.render('shop/index', {
+        prods: data.Items,
+        pageTitle: 'Shop',
+        path: '/'
+      });
+    }
   });
 };
 
@@ -22,13 +35,37 @@ exports.getProduct = (req, res) => {
   });
 };
 
+exports.patchGetProduct = function (req, res) {
+  docClient.scan({
+    TableName: 'products'
+  }, (err, data) => {
+    if (err) {
+      console.log(err.stack);
+      res.status(500).redirect('/');
+    } else {
+      res.render('shop/index', {
+        prods: data.Items,
+        pageTitle: 'Shop',
+        path: '/'
+      });
+    }
+  });
+};
+
 exports.getIndex = (req, res) => {
-  Product.fetchAll((products) => {
-    res.render('shop/index', {
-      prods: products,
-      pageTitle: 'Shop',
-      path: '/',
-    });
+  docClient.scan({
+    TableName: 'products'
+  }, (err, data) => {
+    if (err) {
+      console.log(err.stack);
+      res.status(500).redirect('/');
+    } else {
+      res.render('shop/index', {
+        prods: data.Items,
+        pageTitle: 'Shop',
+        path: '/'
+      });
+    }
   });
 };
 
