@@ -8,65 +8,52 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 
 
 exports.getProducts = function (req, res) {
-  docClient.scan({
-    TableName: 'products'
-  }, (err, data) => {
-    if (err) {
-      console.log(err.stack);
-      res.status(500).redirect('/');
-    } else {
+  Product.fetchAll()
+    .then((products) => {
       res.render('shop/index', {
-        prods: data.Items,
+        prods: products.Items,
         pageTitle: 'Shop',
-        path: '/'
+        path: '/products'
       });
-    }
-  });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).redirect('/products');
+    });
 };
 
 exports.getProduct = (req, res) => {
-  const prodId = req.params.productId;
-  Product.findById(prodId, product => {
-    res.render('shop/product-detail', {
-      pageTitle: product.title,
-      product: product,
-      path: '/products'
-    });
-  });
-};
+  let prodId = req.params.productId;
+  let productIdQuery = req.query.pId;
+  let timeStampQuery = parseInt(req.query.ts);
 
-exports.patchGetProduct = function (req, res) {
-  docClient.scan({
-    TableName: 'products'
-  }, (err, data) => {
-    if (err) {
-      console.log(err.stack);
-      res.status(500).redirect('/');
-    } else {
-      res.render('shop/index', {
-        prods: data.Items,
-        pageTitle: 'Shop',
-        path: '/'
+  Product.fetchProduct(productIdQuery, timeStampQuery)
+    .then(product => {
+      res.render('shop/product-detail', {
+        pageTitle: product.Item.title,
+        product: product.Item,
+        path: '/products'
       });
-    }
-  });
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).redirect('/products');
+    });
 };
 
 exports.getIndex = (req, res) => {
-  docClient.scan({
-    TableName: 'products'
-  }, (err, data) => {
-    if (err) {
-      console.log(err.stack);
-      res.status(500).redirect('/');
-    } else {
+  Product.fetchAll()
+    .then((products) => {
       res.render('shop/index', {
-        prods: data.Items,
+        prods: products.Items,
         pageTitle: 'Shop',
         path: '/'
       });
-    }
-  });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).redirect('/');
+    });
 };
 
 exports.getCart = (req, res) => {
@@ -92,11 +79,18 @@ exports.getCart = (req, res) => {
 };
 
 exports.postCart = (req, res) => {
-  const prodId = req.body.productId;
-  Product.findById(prodId, (product) => {
-    Cart.addProduct(prodId, product.price);
-  });
-  res.redirect('/cart');
+  let prodId = req.body.productId;
+  let timeStamp = parseInt(req.body.timeStamp);
+  Product.findById(prodId, timeStamp)
+    .then((product) => {
+      return req.user.addToCart(product.Item, req.user);
+    })
+    .then(result => {
+      console.log(result);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 };
 
 exports.postCartDeleteProduct = (req, res) => {

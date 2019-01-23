@@ -25,6 +25,7 @@ exports.postAddProduct = function (req, res) {
   let imageUrl = req.body.imageUrl;
   let cost = req.body.cost;
   let price = req.body.price;
+  let userId = req.user.userId;
 
   docClient.put({
     TableName: tableName,
@@ -34,14 +35,8 @@ exports.postAddProduct = function (req, res) {
       "title": title,
       "image_url": imageUrl,
       "cost": cost,
-      "price": price
-    },
-    ConditionExpression: '#t = :t',
-    ExpressionAttributeNames: {
-      '#t': 'timestamp'
-    },
-    ExpressionAttributeValues: {
-      ':t': item.timestamp
+      "price": price,
+      "user_id": userId
     }
   }, (err, data) =>{
     if (err) {
@@ -72,7 +67,7 @@ exports.getEditProduct = function (req, res) {
   }, (err, data) => {
     if (err) {
       console.log(err.stack);
-      res.status(500).redirect('/');
+      res.status(500).redirect('/admin/products');
     } else {
       res.render('admin/edit-product', {
         pageTitle: 'Edit Product',
@@ -82,18 +77,6 @@ exports.getEditProduct = function (req, res) {
       });
     }
   });
-  //
-  // Product.findById(prodId, product => {
-  //   if (!product) {
-  //     return res.redirect('/');
-  //   }
-  //   res.render('admin/edit-product', {
-  //     pageTitle: 'Edit Product',
-  //     path: '/admin/edit-product',
-  //     editing: editModeBoolean,
-  //     product: product
-  //   });
-  // });
 };
 
 exports.postEditProduct = function (req, res) {
@@ -116,15 +99,15 @@ exports.postEditProduct = function (req, res) {
     },
     ConditionExpression: '#t = :t',
     ExpressionAttributeNames: {
-      '#t': 'timestamp'
+      '#t': 'product_id'
     },
     ExpressionAttributeValues: {
-      ':t': timeStamp
+      ':t': product_id
     }
   }, (err, data) =>{
     if (err) {
       console.log(err.stack);
-      return res.status(500).redirect('/');
+      return res.status(500).redirect('/admin/products');
     } else {
       return res.redirect('/admin/products');
     }
@@ -132,26 +115,30 @@ exports.postEditProduct = function (req, res) {
 };
 
 exports.getProducts = (req, res) => {
-  docClient.scan({
-    TableName: 'products'
-  }, (err, data) => {
-    if (err) {
-      console.log(err.stack);
-      res.status(500).redirect('/');
-    } else {
+  Product.fetchAll()
+    .then((products) => {
       res.render('admin/products', {
-        prods: data.Items,
+        prods: products.Items,
         pageTitle: 'Shop',
         path: '/admin/products'
       });
-    }
-  });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).redirect('/admin/products');
+    });
 };
 
 exports.postDeleteProduct = (req, res) => {
-  const prodId = req.body.productId;
-  console.log('passing in ID of product');
-  Product.deleteById(prodId);
-  console.log('redirecting...');
-  res.redirect('/admin/products');
+  let prodId = req.body.productId;
+  let timeStamp = parseInt(req.body.timeStamp);
+
+  Product.deleteProduct(prodId, timeStamp)
+    .then(() => {
+      res.redirect('products');
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).redirect('products');
+    });
 };

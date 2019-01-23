@@ -7,11 +7,11 @@
             <h1><%= product.title %></h1>
             <hr />
             <div>
-              <img src="<%= product.imageUrl %>" alt="<%= product.title %>">
+              <img src="<%= product.image_url %>" alt="<%= product.title %>">
             </div>
             <h2>$<%= product.price %></h2>
             <p>Cost is: $<%= product.cost %> <br />
-              Margin: $<%= product.price - product.cost %>
+              Margin: $<%= (product.price - product.cost).toFixed(2) %>
             </p>
             <%- include('../includes/add-to-cart.ejs') %>
         </main>
