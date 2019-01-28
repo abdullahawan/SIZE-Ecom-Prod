@@ -35,15 +35,27 @@ class User {
   }
 
   addToCart(product, user) {
-    // let cartProduct = this.cart.items.findIndex(cp => {
-    //   return cp.product_id === product.product_id;
-    // });
-    let updatedCart = {items:
-      [{
+    let cartProductIndex = this.cart.items.findIndex(cp => {
+      return cp.product_id === product.product_id;
+    });
+    let newQuantity = 1;
+    const updatedCartItems = [...this.cart.items];
+
+    if (cartProductIndex >= 0) {
+      newQuantity = this.cart.items[cartProductIndex].quantity + 1;
+      updatedCartItems[cartProductIndex].quantity = newQuantity;
+    } else {
+      updatedCartItems.push({
         product_id: product.product_id,
-        timestamp: product.timestamp, 
-        quantity: 1
-      }]}
+        timestamp: product.timestamp,
+        quantity: newQuantity
+      });
+    }
+
+    const updatedCart = {
+      items: updatedCartItems
+    }
+
     return docClient.put({
       TableName: tableName,
       Item: {
@@ -61,6 +73,30 @@ class User {
     }, (err, data) => {
       if (err) return err;
       else return data;
+    }).promise();
+
+  }
+
+  getCart() {
+    let productIds = this.cart.items.map(i => {
+      return i.product_id;
+    });
+    let productObject ={};
+    let index = 0;
+
+    productIds.forEach((value) => {
+      index++;
+      var productKey = ":pid"+index;
+      productObject[productKey.toString()] = value;
+    });
+
+    return docClient.scan({
+      TableName: 'products',
+      FilterExpression: "product_id IN ("+Object.keys(productObject).toString()+ ")",
+      ExpressionAttributeValues: productObject
+    }, (err, data) => {
+      if (err) return err;
+      else  return data
     }).promise();
 
   }

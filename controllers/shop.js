@@ -1,5 +1,4 @@
 const Product = require('../models/product');
-const Cart = require('../models/cart');
 
 const AWS = require('aws-sdk');
 AWS.config.update({region:'us-east-1'});
@@ -57,25 +56,24 @@ exports.getIndex = (req, res) => {
 };
 
 exports.getCart = (req, res) => {
-  Cart.getCart(cart => {
-    Product.fetchAll((products) => {
-      const cartProducts = [];
-      for (product of products) {
-        const cartProductData = cart.products.find((prod => prod.id === product.id));
-        if (cartProductData) {
-          cartProducts.push({
-            productData: product,
-            qty: cartProductData.qty
-          });
+  req.user
+    .getCart()
+    .then(products => {
+      products = products.Items.map(p => {
+        return {
+          ...p,
+          quantity: req.user.cart.items.find(i => {
+            return i.product_id === p.product_id;
+          }).quantity
         }
-      }
+      });
       res.render('shop/cart', {
         path: '/cart',
         pageTitle: 'Your Cart',
-        products: cartProducts
+        products: products
       });
-    });
-  });
+    })
+    .catch(err => console.log(err));
 };
 
 exports.postCart = (req, res) => {
@@ -94,11 +92,7 @@ exports.postCart = (req, res) => {
 };
 
 exports.postCartDeleteProduct = (req, res) => {
-  const prodId = req.body.productId;
-  Product.findById(prodId, (product) => {
-    Cart.deleteProduct(prodId, product.price);
-    res.redirect('/cart');
-  });
+
 };
 
 exports.getOrders = (req, res) => {
