@@ -146,44 +146,70 @@ class User {
   }
 
   addOrder() {
-    console.log('order update starting');
     let orderId = uuidv4();
     let timeStamp = moment().unix();
-    let cartOrder = this.cart
-    console.log(cartOrder);
-    return docClient.put({
-      TableName: 'orders',
-      Item: {
+
+    return this.getCart().then((products) => {
+      return products = products.Items.map(p => {
+        return {
+          ...p,
+          quantity: this.cart.items.find(i => {
+            return i.product_id === p.product_id;
+          }).quantity
+        }
+      });
+    }).then((products) => {
+      const item = {
         "order_id": orderId,
         "timestamp": timeStamp,
-        "order": cartOrder
+        "user": {
+          "user_id": this.userId,
+          "username": this.username,
+          "email": this.email
+        },
+        "items": products
       }
+
+      return docClient.put({
+        TableName: 'orders',
+        Item: item
+      }, (err, data) => {
+        if (err) return err;
+        else {
+          let updatedCart = [];
+          docClient.update({
+            TableName: tableName,
+            Key: {
+              "user_id": this.userId,
+              "username": this.username
+            },
+            UpdateExpression: "set #cart.#items = :cart",
+            ConditionExpression: '#id = :id',
+            ExpressionAttributeNames: {
+              '#id': 'user_id',
+              '#cart': 'cart',
+              '#items': 'items'
+            },
+            ExpressionAttributeValues: {
+              ':id': this.userId,
+              ':cart': updatedCart
+            }
+          }, (err, data) => {
+            if (err) return err;
+            else return data;
+          }).promise();
+        }
+      }).promise();
+    })
+
+  }
+
+  getOrders() {
+    return docClient.scan({
+      TableName: 'orders',
     }, (err, data) => {
       if (err) return err;
-      else {
-        let updatedCart = [];
-        docClient.update({
-          TableName: tableName,
-          Key: {
-            "user_id": this.userId,
-            "username": this.username
-          },
-          UpdateExpression: "set #cart.#items = :cart",
-          ConditionExpression: '#id = :id',
-          ExpressionAttributeNames: {
-            '#id': 'user_id',
-            '#cart': 'cart',
-            '#items': 'items'
-          },
-          ExpressionAttributeValues: {
-            ':id': this.userId,
-            ':cart': updatedCart
-          }
-        }, (err, data) => {
-          if (err) return err;
-          else return data;
-        }).promise();
-      }
+      else return data
     }).promise();
   }
 
