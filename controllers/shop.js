@@ -59,21 +59,32 @@ exports.getCart = (req, res) => {
   req.user
     .getCart()
     .then(products => {
-      products = products.Items.map(p => {
-        return {
-          ...p,
-          quantity: req.user.cart.items.find(i => {
-            return i.product_id === p.product_id;
-          }).quantity
-        }
-      });
-      res.render('shop/cart', {
-        path: '/cart',
-        pageTitle: 'Your Cart',
-        products: products
-      });
+      if (products.items == 0) {
+        res.render('shop/cart', {
+          path: '/cart',
+          pageTitle: 'Your Cart',
+          products: products
+        });
+      } else {
+        products = products.Items.map(p => {
+          return {
+            ...p,
+            quantity: req.user.cart.items.find(i => {
+              return i.product_id === p.product_id;
+            }).quantity
+          }
+        });
+        res.render('shop/cart', {
+          path: '/cart',
+          pageTitle: 'Your Cart',
+          products: products
+        });
+      }
     })
-    .catch(err => console.log(err));
+    .catch((err) => {
+      res.redirect('/');
+      console.log(err);
+    });
 };
 
 exports.postCart = (req, res) => {
@@ -83,8 +94,8 @@ exports.postCart = (req, res) => {
     .then((product) => {
       return req.user.addToCart(product.Item, req.user);
     })
-    .then(result => {
-      console.log(result);
+    .then((result) => {
+      res.redirect('/cart');
     })
     .catch((err) => {
       console.log(err);
@@ -92,7 +103,13 @@ exports.postCart = (req, res) => {
 };
 
 exports.postCartDeleteProduct = (req, res) => {
-
+  let prodId = req.body.productId;
+  req.user
+    .deleteItemFromCart(prodId, req.user)
+    .then(result => {
+      res.redirect('/cart');
+    })
+    .catch(err => console.log(err));
 };
 
 exports.getOrders = (req, res) => {
@@ -100,6 +117,15 @@ exports.getOrders = (req, res) => {
     path: '/orders',
     pageTitle: 'Your Order(s)'
   });
+};
+
+exports.postOrder = (req, res) => {
+  req.user
+    .addOrder()
+    .then(result => {
+      res.redirect('/orders');
+    })
+    .catch(err => console.log(err));
 };
 
 exports.getCheckout = (req, res) => {
