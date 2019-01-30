@@ -10,8 +10,10 @@
     "async": "^2.6.1",
     "aws-sdk": "^2.387.0",
     "body-parser": "^1.18.3",
+    "connect-dynamodb": "^2.0.3",
     "ejs": "^2.6.1",
     "express": "^4.16.4",
+    "express-session": "^1.15.6",
     "moment": "^2.23.0",
     "underscore": "^1.9.1",
     "uuid": "^3.3.2"

@@ -12,7 +12,8 @@ exports.getProducts = function (req, res) {
       res.render('shop/index', {
         prods: products.Items,
         pageTitle: 'Shop',
-        path: '/products'
+        path: '/products',
+        isAuthenticated: req.session.isLoggedIn
       });
     })
     .catch((err) => {
@@ -31,7 +32,8 @@ exports.getProduct = (req, res) => {
       res.render('shop/product-detail', {
         pageTitle: product.Item.title,
         product: product.Item,
-        path: '/products'
+        path: '/products',
+        isAuthenticated: req.session.isLoggedIn
       });
     })
     .catch(err => {
@@ -46,7 +48,8 @@ exports.getIndex = (req, res) => {
       res.render('shop/index', {
         prods: products.Items,
         pageTitle: 'Shop',
-        path: '/'
+        path: '/',
+        isAuthenticated: req.session.isLoggedIn
       });
     })
     .catch((err) => {
@@ -63,7 +66,8 @@ exports.getCart = (req, res) => {
         res.render('shop/cart', {
           path: '/cart',
           pageTitle: 'Your Cart',
-          products: products
+          products: products,
+          isAuthenticated: req.session.isLoggedIn
         });
       } else {
         products = products.Items.map(p => {
@@ -77,7 +81,8 @@ exports.getCart = (req, res) => {
         res.render('shop/cart', {
           path: '/cart',
           pageTitle: 'Your Cart',
-          products: products
+          products: products,
+          isAuthenticated: req.session.isLoggedIn
         });
       }
     })
@@ -119,7 +124,8 @@ exports.getOrders = (req, res) => {
       res.render('shop/orders', {
         path: '/orders',
         pageTitle: 'Orders',
-        orders: orders
+        orders: orders,
+        isAuthenticated: req.session.isLoggedIn
       });
     })
     .catch(err => console.log(err));
@@ -137,6 +143,7 @@ exports.postOrder = (req, res) => {
 exports.getCheckout = (req, res) => {
   res.render('shop/checkout', {
     path: '/checkout',
-    pageTitle: 'Checkout'
+    pageTitle: 'Checkout',
+    isAuthenticated: req.session.isLoggedIn
   });
 };

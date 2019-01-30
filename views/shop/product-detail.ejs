@@ -13,6 +13,8 @@
             <p>Cost is: $<%= product.cost %> <br />
               Margin: $<%= (product.price - product.cost).toFixed(2) %>
             </p>
-            <%- include('../includes/add-to-cart.ejs') %>
+            <% if (isAuthenticated) { %>
+              <%- include('../includes/add-to-cart.ejs', {product: prods[i]}) %>
+            <% } %>  
         </main>
 <%- include('../includes/end.ejs') %>
