@@ -26,6 +26,7 @@
                         <form action="/admin/delete-product" method="POST">
                           <input type="hidden" value="<%= prods[i].product_id %>" name="productId">
                           <input type="hidden" value="<%= prods[i].timestamp %>" name="timeStamp">
+                          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                           <button class="btn" type="submit">Delete</button>
                         </form>
 

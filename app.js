@@ -4,6 +4,9 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const DynamoDBStore = require('connect-dynamodb')(session);
+const csrf = require('csurf');
+const flash = require('connect-flash');
+
 const AWS = require('aws-sdk');
 AWS.config.update({region: 'us-east-1'});
 
@@ -20,6 +23,8 @@ const DynamoDBStoreOptions = {
     region: 'us-east-1'
   }
 }
+const csrfProtection = csrf();
+app.use(flash());
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
@@ -37,15 +42,16 @@ app.use(session({
   saveUninitialized: false,
   cookie: {maxAge: 360000}
 }));
+app.use(csrfProtection);
 
 app.use((req, res, next) => {
   if (!req.session.user) {
     next();
   } else {
-    User.findById(req.session.user.user_id, req.session.user.username)
+    User.findById(req.session.user.email)
       .then(user => {
         user = user.Item;
-        req.user = new User(user.user_id, user.username, user.email, user.cart);
+        req.user = new User(user.email, user.password, user.cart);
         next();
       })
       .catch((err) => {
@@ -53,6 +59,12 @@ app.use((req, res, next) => {
         next();
       });
   }
+});
+
+app.use((req, res, next) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
 });
 
 app.use('/admin', adminRoutes);

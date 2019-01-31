@@ -15,7 +15,6 @@ exports.getAddProduct = function (req, res) {
     pageTitle: 'Add Product',
     path: '/admin/add-product',
     editing: false,
-    isAuthenticated: req.session.isLoggedIn
   });
 };
 
@@ -26,7 +25,7 @@ exports.postAddProduct = function (req, res) {
   let imageUrl = req.body.imageUrl;
   let cost = req.body.cost;
   let price = req.body.price;
-  let userId = req.user.userId;
+  let userEmail = req.user.email;
 
   docClient.put({
     TableName: tableName,
@@ -37,7 +36,7 @@ exports.postAddProduct = function (req, res) {
       "image_url": imageUrl,
       "cost": cost,
       "price": price,
-      "user_id": userId
+      "user_id": userEmail
     }
   }, (err, data) =>{
     if (err) {
@@ -74,8 +73,7 @@ exports.getEditProduct = function (req, res) {
         pageTitle: 'Edit Product',
         path: '/admin/edit-product',
         editing: editModeBoolean,
-        product: data.Item,
-        isAuthenticated: req.session.isLoggedIn
+        product: data.Item
       });
     }
   });
@@ -122,8 +120,7 @@ exports.getProducts = (req, res) => {
       res.render('admin/products', {
         prods: products.Items,
         pageTitle: 'Shop',
-        path: '/admin/products',
-        isAuthenticated: req.session.isLoggedIn
+        path: '/admin/products'
       });
     })
     .catch((err) => {

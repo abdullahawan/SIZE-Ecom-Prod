@@ -12,8 +12,7 @@ exports.getProducts = function (req, res) {
       res.render('shop/index', {
         prods: products.Items,
         pageTitle: 'Shop',
-        path: '/products',
-        isAuthenticated: req.session.isLoggedIn
+        path: '/products'
       });
     })
     .catch((err) => {
@@ -32,8 +31,7 @@ exports.getProduct = (req, res) => {
       res.render('shop/product-detail', {
         pageTitle: product.Item.title,
         product: product.Item,
-        path: '/products',
-        isAuthenticated: req.session.isLoggedIn
+        path: '/products'
       });
     })
     .catch(err => {
@@ -48,8 +46,7 @@ exports.getIndex = (req, res) => {
       res.render('shop/index', {
         prods: products.Items,
         pageTitle: 'Shop',
-        path: '/',
-        isAuthenticated: req.session.isLoggedIn
+        path: '/'
       });
     })
     .catch((err) => {
@@ -66,8 +63,7 @@ exports.getCart = (req, res) => {
         res.render('shop/cart', {
           path: '/cart',
           pageTitle: 'Your Cart',
-          products: products,
-          isAuthenticated: req.session.isLoggedIn
+          products: products
         });
       } else {
         products = products.Items.map(p => {
@@ -81,8 +77,7 @@ exports.getCart = (req, res) => {
         res.render('shop/cart', {
           path: '/cart',
           pageTitle: 'Your Cart',
-          products: products,
-          isAuthenticated: req.session.isLoggedIn
+          products: products
         });
       }
     })
@@ -124,8 +119,7 @@ exports.getOrders = (req, res) => {
       res.render('shop/orders', {
         path: '/orders',
         pageTitle: 'Orders',
-        orders: orders,
-        isAuthenticated: req.session.isLoggedIn
+        orders: orders
       });
     })
     .catch(err => console.log(err));
@@ -143,7 +137,6 @@ exports.postOrder = (req, res) => {
 exports.getCheckout = (req, res) => {
   res.render('shop/checkout', {
     path: '/checkout',
-    pageTitle: 'Checkout',
-    isAuthenticated: req.session.isLoggedIn
+    pageTitle: 'Checkout'
   });
 };

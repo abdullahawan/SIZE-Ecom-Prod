@@ -14,7 +14,7 @@
               Margin: $<%= (product.price - product.cost).toFixed(2) %>
             </p>
             <% if (isAuthenticated) { %>
-              <%- include('../includes/add-to-cart.ejs', {product: prods[i]}) %>
-            <% } %>  
+              <%- include('../includes/add-to-cart.ejs', {product: product}) %>
+            <% } %>
         </main>
 <%- include('../includes/end.ejs') %>

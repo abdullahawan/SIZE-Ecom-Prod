@@ -10,10 +10,9 @@ const tableName = 'users';
 
 
 class User {
-  constructor(userId, username, email, cart) {
-    this.userId = userId;
-    this.username = username;
+  constructor(email, password, cart) {
     this.email = email;
+    this.password = password
     this.cart = cart;
   }
 
@@ -21,15 +20,13 @@ class User {
     return docClient.put({
         TableName: tableName,
         Item: {
-          "user_id": uuidv4(),
-          "username": name,
-          "email": email
+          "email": this.email,
+          "password": this.password
         }
       }, (err, data) => {
         if (err) {
           return console.log(err);
         } else {
-          console.log('success');
           return data.Item;
         }
       }).promise();
@@ -64,17 +61,16 @@ class User {
     return docClient.update({
       TableName: tableName,
       Key: {
-        "user_id": user.userId,
-        "username": user.username
+        "email": user.email
       },
       UpdateExpression: "set #cart = :cart",
       ConditionExpression: '#id = :id',
       ExpressionAttributeNames: {
-        '#id': 'user_id',
+        '#id': 'email',
         '#cart': 'cart'
       },
       ExpressionAttributeValues: {
-        ':id': user.userId,
+        ':id': user.email,
         ':cart': updatedCart
       }
     }, (err, data) => {
@@ -125,18 +121,17 @@ class User {
     return docClient.update({
       TableName: tableName,
       Key: {
-        "user_id": user.userId,
-        "username": user.username
+        "email": user.email
       },
       UpdateExpression: "set #cart.#items = :cart",
       ConditionExpression: '#id = :id',
       ExpressionAttributeNames: {
-        '#id': 'user_id',
+        '#id': 'email',
         '#cart': 'cart',
         '#items': 'items'
       },
       ExpressionAttributeValues: {
-        ':id': user.userId,
+        ':id': user.email,
         ':cart': updatedCartItems
       }
     }, (err, data) => {
@@ -163,8 +158,6 @@ class User {
         "order_id": orderId,
         "timestamp": timeStamp,
         "user": {
-          "user_id": this.userId,
-          "username": this.username,
           "email": this.email
         },
         "items": products
@@ -180,18 +173,17 @@ class User {
           docClient.update({
             TableName: tableName,
             Key: {
-              "user_id": this.userId,
-              "username": this.username
+              "email": this.email
             },
             UpdateExpression: "set #cart.#items = :cart",
             ConditionExpression: '#id = :id',
             ExpressionAttributeNames: {
-              '#id': 'user_id',
+              '#id': 'email',
               '#cart': 'cart',
               '#items': 'items'
             },
             ExpressionAttributeValues: {
-              ':id': this.userId,
+              ':id': this.email,
               ':cart': updatedCart
             }
           }, (err, data) => {
@@ -213,15 +205,14 @@ class User {
     }).promise();
   }
 
-  static findById(userId, userName) {
+  static findById(email) {
     return docClient.get({
       TableName: tableName,
       Key: {
-        "user_id": userId,
-        "username": userName
+        "email": email
       }
     }, (err, data) => {
-      if (err) console.log(err);
+      if (err) return err;
       else {
         return data.Item;
       }
