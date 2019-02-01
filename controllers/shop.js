@@ -71,13 +71,24 @@ exports.getCart = (req, res) => {
             ...p,
             quantity: req.user.cart.items.find(i => {
               return i.product_id === p.product_id;
-            }).quantity
+            }).quantity,
+            productPrice: req.user.cart.items.find(i => {
+              return i.product_id === p.product_id;
+            }).productPrice
           }
         });
+        let totalPrice = 0;
+
+        products.forEach((product) => {
+          let price = product.price * product.quantity;
+          totalPrice += price;
+        })
+
         res.render('shop/cart', {
           path: '/cart',
           pageTitle: 'Your Cart',
-          products: products
+          products: products,
+          totalPrice: totalPrice
         });
       }
     })
@@ -125,18 +136,60 @@ exports.getOrders = (req, res) => {
     .catch(err => console.log(err));
 };
 
-exports.postOrder = (req, res) => {
+exports.getCheckout = (req, res) => {
   req.user
-    .addOrder()
+    .getCart()
+    .then(products => {
+      if (products.items == 0) {
+        res.render('shop/checkout', {
+          path: '/checkout',
+          pageTitle: 'Checkout',
+          salesman: req.user.email
+        });
+      } else {
+        products = products.Items.map(p => {
+          return {
+            ...p,
+            quantity: req.user.cart.items.find(i => {
+              return i.product_id === p.product_id;
+            }).quantity,
+            productPrice: req.user.cart.items.find(i => {
+              return i.product_id === p.product_id;
+            }).productPrice
+          }
+        });
+        let totalPrice = 0;
+
+        products.forEach((product) => {
+          let price = product.price * product.quantity;
+          totalPrice += price;
+        })
+
+        res.render('shop/checkout', {
+          path: '/checkout',
+          pageTitle: 'Checkout',
+          products: products,
+          totalPrice: totalPrice,
+          salesman: req.user.email
+        });
+      }
+    })
+    .catch((err) => {
+      res.redirect('/');
+      console.log(err);
+    });
+};
+
+exports.postOrder = (req, res) => {
+  let orderTotal = req.body.orderTotal;
+  let adjustedTotal = req.body.adjustedTotal;
+  let checkoutNotes = req.body.checkoutNotes;
+
+
+  req.user
+    .addOrder(orderTotal, adjustedTotal, checkoutNotes)
     .then(result => {
       res.redirect('/orders');
     })
     .catch(err => console.log(err));
-};
-
-exports.getCheckout = (req, res) => {
-  res.render('shop/checkout', {
-    path: '/checkout',
-    pageTitle: 'Checkout'
-  });
 };

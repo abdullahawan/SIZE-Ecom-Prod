@@ -10,9 +10,12 @@ const tableName = 'users';
 
 
 class User {
-  constructor(email, password, cart) {
+  constructor(email, password, resetToken, resetTokenExpiration, storeLocation, cart) {
     this.email = email;
-    this.password = password
+    this.password = password;
+    this.resetToken = resetToken;
+    this.resetTokenExpiration = resetTokenExpiration;
+    this.storeLocation = storeLocation;
     this.cart = cart;
   }
 
@@ -21,7 +24,8 @@ class User {
         TableName: tableName,
         Item: {
           "email": this.email,
-          "password": this.password
+          "password": this.password,
+          "store_location": this.storeLocation
         }
       }, (err, data) => {
         if (err) {
@@ -40,19 +44,24 @@ class User {
       return cp.product_id === product.product_id;
     });
     let newQuantity = 1;
+    let price = 0;
 
     let updatedCartItems = [...this.cart.items];
 
     if (cartProductIndex >= 0) {
       newQuantity = this.cart.items[cartProductIndex].quantity + 1;
       updatedCartItems[cartProductIndex].quantity = newQuantity;
+      price = product.price * newQuantity;
+      updatedCartItems[cartProductIndex].productPrice = price;
     } else {
       updatedCartItems.push({
         product_id: product.product_id,
         timestamp: product.timestamp,
-        quantity: newQuantity
+        quantity: newQuantity,
+        productPrice: product.price
       });
     }
+
 
     const updatedCart = {
       items: updatedCartItems
@@ -140,7 +149,7 @@ class User {
     }).promise();
   }
 
-  addOrder() {
+  addOrder(orderTotal, adjustedTotal, checkoutNotes) {
     let orderId = uuidv4();
     let timeStamp = moment().unix();
 
@@ -150,17 +159,26 @@ class User {
           ...p,
           quantity: this.cart.items.find(i => {
             return i.product_id === p.product_id;
-          }).quantity
+          }).quantity,
+          productPrice: this.cart.items.find(i => {
+            return i.product_id === p.product_id;
+          }).productPrice
         }
       });
     }).then((products) => {
+      if (checkoutNotes.length == 0) {
+        checkoutNotes = " ";
+      }
       const item = {
         "order_id": orderId,
         "timestamp": timeStamp,
         "user": {
           "email": this.email
         },
-        "items": products
+        "items": products,
+        "order_total": orderTotal,
+        "is_order_adjusted": adjustedTotal,
+        "checkout_notes": checkoutNotes
       }
 
       return docClient.put({

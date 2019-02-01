@@ -24,6 +24,15 @@
                 <label for="price">Price</label>
                 <input type="number" name="price" id="price" step="0.01" value="<% if (editing) { %><%= product.price %><% } %>">
             </div>
+            <div class="form-control">
+                <label for="fairlane_quantity">Fairlane Quantity</label>
+                <input type="number" name="fairlane_quantity" id="fairlane_quantity" value="<% if (editing) { %><%= product.fairlane_quantity %><% } %>">
+            </div>
+            <div class="form-control">
+                <label for="detroit_quantity">Detroit Quantity</label>
+                <input type="number" name="detroit_quantity" id="detroit_quantity" value="<% if (editing) { %><%= product.detroit_quantity %><% } %>">
+            </div>
+
             <% if (editing) { %>
               <input type="hidden" value="<%= product.product_id %>" name="productId">
               <input type="hidden" value="<%= product.timestamp %>" name="timeStamp">

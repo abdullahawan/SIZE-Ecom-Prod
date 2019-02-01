@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const User = require('../models/users');
 
@@ -74,7 +75,7 @@ exports.postSignup = (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
   let confirmPassword = req.body.confirmPassword;
-
+  let storeLocation = req.body.storeLocation;
 
   User.findById(email)
     .then(userDoc => {
@@ -87,7 +88,7 @@ exports.postSignup = (req, res) => {
         bcrypt
         .hash(password, 12)
         .then(hashedPassword => {
-          const user = new User(email, hashedPassword);
+          const user = new User(email, hashedPassword, null, null, storeLocation);
           return user.save();
         });
         res.redirect('/login');
@@ -102,3 +103,60 @@ exports.postLogout = (req, res) => {
     else res.redirect('/');
   });
 };
+
+exports.getReset = (req, res) => {
+  let message = req.flash('error');
+  if (message.length > 0) {
+    message = message[0];
+  } else {
+    message = null;
+  }
+
+  res.render('auth/reset', {
+    path:'/reset',
+    pageTitle: 'Reset Password',
+    errorMessage: message
+  });
+}
+
+exports.postReset = (req, res) => {
+  crypto.randomBytes(32, (err, buffer) => {
+    if (err) {
+      console.log(err);
+      return res.redirect('/reset');
+    }
+
+    const token = buffer.toString('hex');
+    User.findById(req.body.email)
+      .then(user => {
+        if (Object.entries(userDoc).length === 0) {
+          req.flash('error', 'No user found');
+          return res.redirect('/reset');
+        } else {
+          user.resetToken = token;
+          user.resetTokenExpiration = Date.now() * 3600000;
+          return user.save();
+        }
+      })
+      .then(result => {
+        console.log(result);
+        //send email to user here
+      })
+      .catch(err => console.log(err));
+  });
+}
+
+exports.getNewPassword = (req, res) => {
+  let message = req.flash('error');
+  if (message.length > 0) {
+    message = message[0];
+  } else {
+    message = null;
+  }
+
+  res.render('auth/new-password', {
+    path:'/new-password',
+    pageTitle: 'New Password',
+    errorMessage: message
+  });
+}

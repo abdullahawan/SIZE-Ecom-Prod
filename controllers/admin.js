@@ -26,6 +26,8 @@ exports.postAddProduct = function (req, res) {
   let cost = req.body.cost;
   let price = req.body.price;
   let userEmail = req.user.email;
+  let fairlane_quantity = req.body.fairlane_quantity;
+  let detroit_quantity = req.body.detroit_quantity;
 
   docClient.put({
     TableName: tableName,
@@ -36,7 +38,9 @@ exports.postAddProduct = function (req, res) {
       "image_url": imageUrl,
       "cost": cost,
       "price": price,
-      "user_id": userEmail
+      "user_id": userEmail,
+      "fairlane_quantity": fairlane_quantity,
+      "detroit_quantity": detroit_quantity
     }
   }, (err, data) =>{
     if (err) {
@@ -86,6 +90,9 @@ exports.postEditProduct = function (req, res) {
   let imageUrl = req.body.imageUrl;
   let cost = req.body.cost;
   let price = req.body.price;
+  let fairlane_quantity = req.body.fairlane_quantity;
+  let detroit_quantity = req.body.detroit_quantity;
+  let userEmail = req.user.email;
 
   docClient.put({
     TableName: tableName,
@@ -95,7 +102,10 @@ exports.postEditProduct = function (req, res) {
       "title": title,
       "image_url": imageUrl,
       "cost": cost,
-      "price": price
+      "price": price,
+      "last_edited_by": userEmail,
+      "fairlane_quantity": fairlane_quantity,
+      "detroit_quantity": detroit_quantity
     },
     ConditionExpression: '#t = :t',
     ExpressionAttributeNames: {

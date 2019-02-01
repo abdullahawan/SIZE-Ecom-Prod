@@ -23,8 +23,18 @@
                 <label for="confirmPassword">Confirm Password</label>
                 <input type="password" name="confirmPassword" id="confirmPassword">
             </div>
+            <div class="form-control">
+                <label for="storeLocation">Select Store</label>
+                <select name="storeLocation" id="storeLocation">
+                  <option value="fairlane">Fairlane</option>
+                  <option value="detroit">Detroit</option>
+                </select>
+            </div>
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <button class="btn" type="submit">Signup</button>
         </form>
+
+        
     </main>
+
 <%- include('../includes/end.ejs') %>

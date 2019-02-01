@@ -18,8 +18,8 @@
                     </div>
                     <div class="card__content">
                         <h2 class="product__price">$<%= prods[i].price %></h2>
-                        <p class="product__description">Cost is: $<%= prods[i].cost %> <br />
-                          Margin: $<%= (prods[i].price - prods[i].cost).toFixed(2) %></p>
+                        <p class="product__description">Fairlane Quantity: <%= prods[i].fairlane_quantity %> <br />
+                          Detroit Quantity: <%= prods[i].detroit_quantity %></p>
                     </div>
                     <div class="card__actions">
                         <a href="/admin/edit-product/<%= prods[i].product_id %>?edit=true&ts=<%= prods[i].timestamp %>&pId=<%= prods[i].product_id %>" class="btn">Edit</a>

@@ -6,12 +6,14 @@ docClient = new AWS.DynamoDB.DocumentClient();
 const tableName = 'products';
 
 module.exports = class Product {
-  constructor(id, title, imageUrl, cost, price) {
+  constructor(id, title, imageUrl, cost, price, fairlane_quantity, detroit_quantity) {
     this.id = id;
     this.title = title;
     this.imageUrl = imageUrl;
     this.cost = cost;
     this.price = price;
+    this.fairlane_quantity = fairlane_quantity;
+    this.detroit_quantity = detroit_quantity;
   }
 
   save() {
