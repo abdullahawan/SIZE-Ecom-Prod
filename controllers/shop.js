@@ -1,5 +1,7 @@
 const Product = require('../models/product');
 
+const moment = require('moment');
+
 const AWS = require('aws-sdk');
 AWS.config.update({region:'us-east-1'});
 
@@ -130,11 +132,31 @@ exports.getOrders = (req, res) => {
       res.render('shop/orders', {
         path: '/orders',
         pageTitle: 'Orders',
-        orders: orders
+        orders: orders,
       });
     })
     .catch(err => console.log(err));
 };
+
+exports.getOrder = (req, res) => {
+  let order_id = req.query.oId;
+  let timeStamp = parseInt(req.query.ts);
+  req.user.getOrder(order_id, timeStamp)
+    .then(order => {
+      order = order.Item;
+      let date = new Date(order.timestamp * 1000).toLocaleString();
+      res.render('admin/order-detail', {
+        pageTitle: order.order_id,
+        order: order,
+        path: '/orders',
+        date: date
+      });
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/');
+    })
+}
 
 exports.getCheckout = (req, res) => {
   req.user
@@ -144,7 +166,6 @@ exports.getCheckout = (req, res) => {
         res.render('shop/checkout', {
           path: '/checkout',
           pageTitle: 'Checkout',
-          salesman: req.user.email
         });
       } else {
         products = products.Items.map(p => {
@@ -170,7 +191,6 @@ exports.getCheckout = (req, res) => {
           pageTitle: 'Checkout',
           products: products,
           totalPrice: totalPrice,
-          salesman: req.user.email
         });
       }
     })
@@ -184,12 +204,39 @@ exports.postOrder = (req, res) => {
   let orderTotal = req.body.orderTotal;
   let adjustedTotal = req.body.adjustedTotal;
   let checkoutNotes = req.body.checkoutNotes;
-
+  let userInfo = req.user;
 
   req.user
-    .addOrder(orderTotal, adjustedTotal, checkoutNotes)
+    .addOrder(orderTotal, adjustedTotal, checkoutNotes, userInfo)
     .then(result => {
       res.redirect('/orders');
     })
     .catch(err => console.log(err));
 };
+
+exports.postUpdateAdjustedTotal = (req, res) => {
+  let order_id = req.body.order_id;
+  let timeStamp = parseInt(req.body.timeStamp);
+  let adjustedTotal = req.body.adjustedPrice;
+
+  docClient.update({
+    TableName: 'orders',
+    Key: {
+      "order_id": order_id,
+      "timestamp": timeStamp
+    },
+    UpdateExpression: 'set #adjustedTotal = :adjustedTotal',
+    ExpressionAttributeNames: {
+      '#adjustedTotal': 'is_order_adjusted'
+    },
+    ExpressionAttributeValues: {
+      ':adjustedTotal': adjustedTotal
+    }
+  }, (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.redirect('/orders');
+    }
+  });
+}

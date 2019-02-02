@@ -20,4 +20,10 @@ router.post('/edit-product', isAuth, adminController.postEditProduct);
 
 router.post('/delete-product', isAuth, adminController.postDeleteProduct);
 
+router.get('/user-cp', isAuth, adminController.getUserCp);
+
+router.post('/user-cp/update-store-location', isAuth, adminController.postUserCpStoreLocation);
+
+router.post('/user-cp/update-user-info', isAuth, adminController.postUpdateUserInfo);
+
 module.exports = router;

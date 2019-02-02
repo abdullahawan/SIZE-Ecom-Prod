@@ -1,9 +1,9 @@
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const { validationResult } = require('express-validator/check');
 
 const User = require('../models/users');
 
-const uuidv4 = require('uuid/v4');
 const AWS = require('aws-sdk');
 AWS.config.update({region:'us-east-1'});
 
@@ -19,7 +19,12 @@ exports.getLogin = (req, res) => {
   res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
-    errorMessage: message
+    errorMessage: message,
+    oldInput: {
+      email: "",
+      password: ""
+    },
+    validationErrors: []
   });
 };
 
@@ -33,18 +38,48 @@ exports.getSignup = (req, res) => {
   res.render('auth/signup', {
     path: '/signup',
     pageTitle: 'signup',
-    errorMessage: message
+    errorMessage: message,
+    oldInput: {
+      email: "",
+      password: "",
+      confirmPassword: ""
+    },
+    validationErrors: []
   });
 };
 
 exports.postLogin = (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
+
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(422).render('auth/login', {
+      path: '/login',
+      pageTitle: 'Login',
+      errorMessage: errors.array()[0].msg,
+      oldInput: {
+        email: email,
+        password: password
+      },
+      validationErrors: errors.array()
+    });
+  }
+
   User.findById(email)
     .then(user => {
       if (Object.entries(user).length === 0 && user.constructor === Object) {
-        req.flash('error', 'Invalid email or password.');
-        res.redirect('/login');
+        return res.status(422).render('auth/login', {
+          path: '/login',
+          pageTitle: 'login',
+          errorMessage: 'Invalid email or password',
+          oldInput: {
+            email: email,
+            password: password
+          },
+          validationErrors: []
+        });
       } else {
         bcrypt.compare(password, user.Item.password)
         .then(doMatch => {
@@ -55,9 +90,18 @@ exports.postLogin = (req, res) => {
               if (err) console.log(err);
               else return res.redirect('/');
             });
+          } else {
+            return res.status(422).render('auth/login', {
+              path: '/login',
+              pageTitle: 'login',
+              errorMessage: 'Invalid email or password',
+              oldInput: {
+                email: email,
+                password: password
+              },
+              validationErrors: []
+            });
           }
-          req.flash('error', 'Invalid email or password.');
-          res.redirect('/login');
         })
         .catch((err) => {
           console.log(err);
@@ -74,27 +118,32 @@ exports.postLogin = (req, res) => {
 exports.postSignup = (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
-  let confirmPassword = req.body.confirmPassword;
   let storeLocation = req.body.storeLocation;
 
-  User.findById(email)
-    .then(userDoc => {
-      if (Object.entries(userDoc).length !== 0) {
-        req.flash('error', 'User already exists.');
-        setTimeout(() => {
-          return res.redirect('/signup');
-        }, 50);
-      } else {
-        bcrypt
-        .hash(password, 12)
-        .then(hashedPassword => {
-          const user = new User(email, hashedPassword, null, null, storeLocation);
-          return user.save();
-        });
-        res.redirect('/login');
-      }
-    })
-    .catch(err => console.log(err));
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(422).render('auth/signup', {
+      path: '/signup',
+      pageTitle: 'signup',
+      errorMessage: errors.array()[0].msg,
+      oldInput: {
+        email: email,
+        password: password,
+        confirmPassword: req.body.confirmPassword
+      },
+      validationErrors: errors.array()
+    });
+  }
+
+  bcrypt
+  .hash(password, 12)
+  .then(hashedPassword => {
+    const user = new User(null, email, hashedPassword, null, null, storeLocation);
+    return user.save();
+  });
+  res.redirect('/login');
+
 }
 
 exports.postLogout = (req, res) => {

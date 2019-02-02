@@ -13,6 +13,11 @@
                         <header class="card__header">
                             <h1 class="product__title"><%= prods[i].title %></h1>
                         </header>
+                        <div class="card__content">
+                          <p class="product__description">
+                            Brand: <b><%= prods[i].brand %></b>
+                          </p>
+                        </div>
                         <div class="card__image">
                             <img src="<%= prods[i].image_url %>"
                                 alt="<%= prods[i].title %>">

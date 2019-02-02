@@ -10,7 +10,8 @@ const tableName = 'users';
 
 
 class User {
-  constructor(email, password, resetToken, resetTokenExpiration, storeLocation, cart) {
+  constructor(name, email, password, resetToken, resetTokenExpiration, storeLocation, cart) {
+    this.name = name;
     this.email = email;
     this.password = password;
     this.resetToken = resetToken;
@@ -34,6 +35,18 @@ class User {
           return data.Item;
         }
       }).promise();
+  }
+
+  getUser(email) {
+    return docClient.get({
+      TableName: 'users',
+      Key: {
+        "email": email
+      }
+    }, (err, data) => {
+      if (err) return err;
+      else return data;
+    }).promise();
   }
 
   addToCart(product, user) {
@@ -149,7 +162,7 @@ class User {
     }).promise();
   }
 
-  addOrder(orderTotal, adjustedTotal, checkoutNotes) {
+  addOrder(orderTotal, adjustedTotal, checkoutNotes, user) {
     let orderId = uuidv4();
     let timeStamp = moment().unix();
 
@@ -173,12 +186,14 @@ class User {
         "order_id": orderId,
         "timestamp": timeStamp,
         "user": {
-          "email": this.email
+          "name": user.name,
+          "email": user.email
         },
         "items": products,
         "order_total": orderTotal,
         "is_order_adjusted": adjustedTotal,
-        "checkout_notes": checkoutNotes
+        "checkout_notes": checkoutNotes,
+        "store_location": user.storeLocation
       }
 
       return docClient.put({
@@ -219,7 +234,22 @@ class User {
       TableName: 'orders',
     }, (err, data) => {
       if (err) return err;
-      else return data
+      else return data;
+    }).promise();
+  }
+
+  getOrder(order_id, timeStamp) {
+    return docClient.get({
+      TableName: 'orders',
+      Key: {
+        "timestamp": timeStamp,
+        "order_id": order_id
+      }
+    }, (err, data) => {
+      if (err) return err;
+      else {
+        return data;
+      }
     }).promise();
   }
 

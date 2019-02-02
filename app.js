@@ -51,7 +51,7 @@ app.use((req, res, next) => {
     User.findById(req.session.user.email)
       .then(user => {
         user = user.Item;
-        req.user = new User(user.email, user.password, user.resetToken, user.resetTokenExpiration, user.storeLocation, user.cart);
+        req.user = new User(user.name, user.email, user.password, user.resetToken, user.resetTokenExpiration, user.store_location, user.cart);
         next();
       })
       .catch((err) => {
@@ -65,7 +65,11 @@ app.use((req, res, next) => {
   res.locals.isAuthenticated = req.session.isLoggedIn;
   res.locals.csrfToken = req.csrfToken();
   if(typeof(req.user) !== 'undefined') {
-    res.locals.userName = req.user.email;
+    if(typeof(req.user.name) !== 'undefined') {
+      res.locals.userName = req.user.name;
+    } else {
+      res.locals.userName = req.user.email;
+    }
   }
   next();
 });

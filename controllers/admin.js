@@ -23,9 +23,10 @@ exports.postAddProduct = function (req, res) {
   let timeStamp = moment().unix();
   let title = req.body.title;
   let imageUrl = req.body.imageUrl;
+  let brand = req.body.brand;
   let cost = req.body.cost;
   let price = req.body.price;
-  let userEmail = req.user.email;
+  let user = req.user;
   let fairlane_quantity = req.body.fairlane_quantity;
   let detroit_quantity = req.body.detroit_quantity;
 
@@ -36,9 +37,10 @@ exports.postAddProduct = function (req, res) {
       "timestamp": timeStamp,
       "title": title,
       "image_url": imageUrl,
+      "brand": brand,
       "cost": cost,
       "price": price,
-      "user_id": userEmail,
+      "added_by": user.email,
       "fairlane_quantity": fairlane_quantity,
       "detroit_quantity": detroit_quantity
     }
@@ -88,31 +90,39 @@ exports.postEditProduct = function (req, res) {
   let timeStamp = parseInt(req.body.timeStamp);
   let title = req.body.title;
   let imageUrl = req.body.imageUrl;
+  let brand = req.body.brand;
   let cost = req.body.cost;
   let price = req.body.price;
   let fairlane_quantity = req.body.fairlane_quantity;
   let detroit_quantity = req.body.detroit_quantity;
   let userEmail = req.user.email;
 
-  docClient.put({
+  docClient.update({
     TableName: tableName,
-    Item: {
+    Key: {
       "product_id": product_id,
-      "timestamp": timeStamp,
-      "title": title,
-      "image_url": imageUrl,
-      "cost": cost,
-      "price": price,
-      "last_edited_by": userEmail,
-      "fairlane_quantity": fairlane_quantity,
-      "detroit_quantity": detroit_quantity
+      "timestamp": timeStamp
     },
-    ConditionExpression: '#t = :t',
+    UpdateExpression: `set title = :title,
+      image_url = :imageUrl,
+      brand = :brand,
+      price = :price,
+      cost = :cost,
+      fairlane_quantity = :fq,
+      detroit_quantity = :dq,
+      #leb = :leb`,
     ExpressionAttributeNames: {
-      '#t': 'product_id'
+      '#leb': 'last_edited_by'
     },
     ExpressionAttributeValues: {
-      ':t': product_id
+      ':title': title,
+      ':imageUrl': imageUrl,
+      ':brand': brand,
+      ':cost': cost,
+      ':price': price,
+      ':fq': fairlane_quantity,
+      ':dq': detroit_quantity,
+      ':leb': userEmail
     }
   }, (err, data) =>{
     if (err) {
@@ -152,3 +162,57 @@ exports.postDeleteProduct = (req, res) => {
       res.status(500).redirect('products');
     });
 };
+
+exports.getUserCp = (req, res) => {
+  res.render('admin/user-cp', {
+    path: '/admin/user-cp',
+    pageTitle: 'User Control Panel',
+    user: req.user,
+  })
+}
+
+exports.postUserCpStoreLocation = (req, res) => {
+  let store_location = req.body.store_location;
+  docClient.update({
+    TableName: 'users',
+    Key: {
+      "email": req.user.email
+    },
+    UpdateExpression: 'set #store_location = :store_location',
+    ExpressionAttributeNames: {
+      '#store_location': 'store_location'
+    },
+    ExpressionAttributeValues: {
+      ':store_location': store_location
+    }
+  }, (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.redirect('/admin/user-cp');
+    }
+  });
+}
+
+exports.postUpdateUserInfo = (req, res) => {
+  let user_name = req.body.user_name;
+  docClient.update({
+    TableName: 'users',
+    Key: {
+      "email": req.user.email
+    },
+    UpdateExpression: 'set #name = :name',
+    ExpressionAttributeNames: {
+      '#name': 'name'
+    },
+    ExpressionAttributeValues: {
+      ':name': user_name
+    }
+  }, (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.redirect('/admin/user-cp');
+    }
+  });
+}

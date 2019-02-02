@@ -36,7 +36,7 @@
                 </li>
             <% } else { %>
                 <li class="main-header__item">
-                    <a class="<%= path === '/login' ? 'active' : '' %>" href="/user-cp">Hello, <%= userName %></a>
+                    <a class="<%= path === '/login' ? 'active' : '' %>" href="/admin/user-cp">Hello, <%= userName %></a>
                 </li>
                 <li class="main-header__item">
                     <form action="/logout" method="post">
@@ -81,6 +81,9 @@
                 <a class="<%= path === '/signup' ? 'active' : '' %>" href="/signup">Signup</a>
             </li>
         <% } else { %>
+            <li class="main-header__item">
+                <a class="<%= path === '/login' ? 'active' : '' %>" href="/admin/user-cp">Hello, <%= userName %></a>
+            </li>
             <li class="mobile-nav__item">
                 <form action="/logout" method="post">
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">

@@ -5,13 +5,17 @@
         <%- include('../includes/navigation.ejs') %>
         <main class="centered">
             <h1><%= product.title %></h1>
+            Brand: <b><%= product.brand %></b>
+
             <hr />
+
             <div>
               <img src="<%= product.image_url %>" alt="<%= product.title %>">
             </div>
             <h2>$<%= product.price %></h2>
-            <p class="product__description">Fairlane Quantity: <%= prods[i].fairlane_quantity %> <br />
-              Detroit Quantity: <%= prods[i].detroit_quantity %></p>
+            <h5>Cost: $<%= product.cost %></h5>
+            <p class="product__description">Fairlane Quantity: <%= product.fairlane_quantity %> <br />
+              Detroit Quantity: <%= product.detroit_quantity %></p>
             <% if (isAuthenticated) { %>
               <%- include('../includes/add-to-cart.ejs', {product: product}) %>
             <% } %>

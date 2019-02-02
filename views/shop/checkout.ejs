@@ -19,7 +19,7 @@
                 <ul class="cart__item-list">
                   <div class="form-control">
                     <label for="orderTotal"><h2>Total: ($)</h2></label>
-                    <input type="number" name="ordertotal" id="ordertotal" value="<%= totalPrice %>">
+                    <input type="number" name="orderTotal" step="0.01" id="orderTotal" value="<%= totalPrice %>">
                   </div> <br />
                   <li class="cart__item">
                       <h1>Adjusted:</h1>
@@ -37,7 +37,6 @@
                     </div>
 
                   </li>
-                  <input type="hidden" name="salesman" value="<%= salesman %>">
                   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                   <div class="centered">
                     <button type="submit" class="btn">Place Order</button>

@@ -21,6 +21,10 @@ router.post('/cart-delete-item', isAuth, shopController.postCartDeleteProduct);
 
 router.get('/orders', isAuth, shopController.getOrders);
 
+router.get('/orders/:orderId', isAuth, shopController.getOrder);
+
+router.post('/orders/update-adjusted-total', isAuth, shopController.postUpdateAdjustedTotal);
+
 router.post('/create-order', isAuth, shopController.postOrder);
 
 router.get('/checkout', isAuth, shopController.getCheckout);
